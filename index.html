@@ -170,11 +170,6 @@ snap.forEach(async (post) => {
 
    container.appendChild(div);
 });}
-
-if (currentUsername === "banned") {
-	await signOut(auth);
-	alert("you have been banned");
-};
 	
 
 signupBtn.onclick = async ()=>{
@@ -204,14 +199,23 @@ onAuthStateChanged(auth, async (user) => {
 
     if (user) {
         const username = await ensureUsername(user);
+
+        if (username === "banned") {
+            await signOut(auth);
+            alert("you have been banned");
+            return;
+        }
+
         statusElement.textContent =
             "Logged in as " + (username || user.email);
 
         document.getElementById("adminPanel").style.display =
             (username === "[ADMIN] appiekaasbroodje") ? "block" : "none";
+
+        loadPosts();
     } else {
         statusElement.textContent = "Not logged in";
-        document.getElementById("adminPanel").style.display="none";
+        document.getElementById("adminPanel").style.display = "none";
     }
 });
 
