@@ -171,6 +171,12 @@ snap.forEach(async (post) => {
    container.appendChild(div);
 });}
 
+if (currentUsername === "banned") {
+	await signOut(auth);
+	alert("you have been banned");
+};
+	
+
 signupBtn.onclick = async ()=>{
  try{
   await createUserWithEmailAndPassword(auth,email.value,password.value);
