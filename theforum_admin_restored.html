@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Nameless Forum</title>
+<style>
+body{font-family:Arial;max-width:800px;margin:auto;padding:20px}
+input,button{padding:8px;margin:4px}
+.post{border:1px solid #ccc;padding:10px;margin:10px 0}
+
+.popup{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000}
+.popup-content{background:#fff;max-width:600px;width:90%;padding:20px;border-radius:10px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+
+</style>
+</head>
+<body>
+
+<h1>Nameless Forum</h1>
+
+<h5>posts might get deleted while the website is still being worked on</h5>
+
+<h2>Account</h2>
+<input id="email" type="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+
+<button id="signupBtn">sign up</button>
+<button id="loginBtn">log in</button>
+<button id="logoutBtn">log out</button>
+
+<p id="status">logging in...</p>
+
+<hr>
+
+<input id="postInput" placeholder="write something!">
+<button id="postBtn">Post</button>
+
+<div id="posts"></div>
+
+<hr>
+<div id="adminPanel" style="display:none;border:2px solid #888;padding:10px;margin-top:15px;">
+<h2>admin stuff :p</h2>
+<input id="searchUser" placeholder="Username">
+<button id="searchBtn">Search</button>
+<div id="adminResults"></div>
+</div>
+
+<h4>made by adam</h4>
+
+
+<hr>
+<button onclick="openPolicy()">Privacy Policy & Terms of Use</button>
+
+<div id="policyMenu" class="popup">
+  <div class="popup-content">
+    <h2>Privacy Policy</h2>
+    <p>The information that is collected:
+usernames, emails (stored in Google Firebase for login), messages posted to Nameless Forum, (your password is NOT accesible to the owner of Nameless Forum.).to get your information deleted off of Nameless Forum, please contact .... with the email address associated with your account. Thank you for reading the privacy policy, have fun on Nameless Forum! </p>
+    <h2>Terms of Use</h2>
+    <p>Here's a list of the rules of Nameless Forum</p>
+    <p>any bypassing of the post filter (the thing that blocks you from posting certain words/sentences) will result in your message being deleted if found by the owner and after repeatedly bypassing the filter your account may be disabled.</p>
+    <p>inappropriate usernames will be deleted if found and you will have to pick a new username.</p>
+    <button onclick="closePolicy()">Close</button>
+  </div>
+</div>
+
+
+<script type="module">
+const firebaseConfig = {
+  apiKey: "AIzaSyA6kVGxsYBUBsOQrVKsk6n29xM3yrJhcOs",
+  authDomain: "base-c4932.firebaseapp.com",
+  projectId: "base-c4932",
+  storageBucket: "base-c4932.firebasestorage.app",
+  messagingSenderId: "831332975571",
+  appId: "1:831332975571:web:c50e59bc21aff4a2bde526"
+};
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, getDocs,
+  doc, getDoc, setDoc, deleteDoc
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+async function getUsername(uid){
+ const d = await getDoc(doc(db,"users",uid));
+ return d.exists() ? d.data().username : null;
+}
+
+async function usernameTaken(username){
+ const snap = await getDocs(collection(db,"users"));
+ let taken = false;
+ snap.forEach(d=>{
+   const u = d.data().username;
+   if(u && u.toLowerCase()===username.toLowerCase()) taken=true;
+ });
+ return taken;
+}
+
+async function ensureUsername(user){
+ if(!user) return null; // must be logged in
+
+ let existing = await getUsername(user.uid);
+ if(existing) return existing;
+
+ let username = prompt("Choose a unique username");
+
+ if(!username) return null;
+
+ username = username.trim();
+
+ if(!/^[a-zA-Z0-9_]{3,20}$/.test(username)){
+   alert("3-20 characters. Letters, numbers and _ only.");
+   return ensureUsername(user);
+ }
+
+ if(await usernameTaken(username)){
+   alert("Username already taken.");
+   return ensureUsername(user);
+ }
+
+ await setDoc(doc(db,"users",user.uid), {username,email:user.email,uid:user.uid});
+ return username;
+}
+
+async function loadPosts(){
+ const container = document.getElementById("posts");
+ container.innerHTML = "";
+
+ const snap = await getDocs(collection(db,"posts"));
+
+snap.forEach(async (post) => {
+   const data = post.data();
+
+   const div = document.createElement("div");
+   div.className = "post";
+   div.textContent = `${data.user}: ${data.text}`;
+
+   const currentUsername = auth.currentUser
+      ? await getUsername(auth.currentUser.uid)
+      : null;
+
+   if (currentUsername === "[ADMIN] appiekaasbroodje") {
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "Delete";
+
+      deleteBtn.onclick = async () => {
+         await deleteDoc(doc(db, "posts", post.id));
+         loadPosts();
+      };
+
+      div.appendChild(document.createElement("br"));
+      div.appendChild(deleteBtn);
+   }
+
+   container.appendChild(div);
+});}
+
+signupBtn.onclick = async ()=>{
+ try{
+  await createUserWithEmailAndPassword(auth,email.value,password.value);
+ }catch(e){alert(e.message);}
+};
+
+loginBtn.onclick = async ()=>{
+ try{
+  await signInWithEmailAndPassword(auth,email.value,password.value);
+ }catch(e){alert(e.message);}
+};
+
+logoutBtn.onclick = async () => {
+    try {
+        await signOut(auth);
+        alert("logged out");
+    } catch (e) {
+        alert(e.message);
+    }
+};
+
+
+onAuthStateChanged(auth, async (user) => {
+    const statusElement = document.getElementById("status");
+
+    if (user) {
+        const username = await ensureUsername(user);
+        statusElement.textContent =
+            "Logged in as " + (username || user.email);
+
+        document.getElementById("adminPanel").style.display =
+            (username === "[ADMIN] appiekaasbroodje") ? "block" : "none";
+    } else {
+        statusElement.textContent = "Not logged in";
+        document.getElementById("adminPanel").style.display="none";
+    }
+});
+
+postBtn.onclick = async ()=>{
+ if(!auth.currentUser){
+   alert("please log in first.");
+   return;
+ }
+
+ const username = await getUsername(auth.currentUser.uid);
+
+ if(!username){
+   alert("refresh the page to choose a username, you need a username ");
+   return;
+ }
+
+ const text = postInput.value.trim();
+ if(!text) return;
+
+ const bannedPhrases = [
+    "u suck",
+    "efn",
+    "efnn",
+    "ur buns",
+	"adam is gay",
+	"appiekaasbroodje is gay",
+	"undefined",
+];
+
+const lowerText = text.toLowerCase();
+
+for (const phrase of bannedPhrases) {
+    if (lowerText.includes(phrase.toLowerCase())) {
+        alert("your message hasn't been posted, you know why");
+        return;
+    }
+}
+
+ await addDoc(collection(db,"posts"),{
+   text,
+   user: username,
+   email: auth.currentUser.email,
+   uid: auth.currentUser.uid,
+   createdAt: Date.now()
+ });
+
+ postInput.value = "";
+ loadPosts();
+};
+
+loadPosts();
+
+
+
+document.getElementById("searchBtn").onclick = async () => {
+ const username=document.getElementById("searchUser").value.trim();
+ const results=document.getElementById("adminResults");
+ results.innerHTML="";
+ if(!username) return;
+
+ const snap=await getDocs(collection(db,"posts"));
+
+ snap.forEach(post=>{
+   const data=post.data();
+   if(data.user!==username) return;
+
+   const div=document.createElement("div");
+   div.className="post";
+   div.innerHTML=`<b>${data.user}</b><br>${data.email}<br>${data.text}`;
+
+   const btn=document.createElement("button");
+   btn.textContent="Delete";
+   btn.onclick=async()=>{
+      await deleteDoc(doc(db,"posts",post.id));
+      div.remove();
+   };
+
+   div.appendChild(document.createElement("br"));
+   div.appendChild(btn);
+   results.appendChild(div);
+ });
+
+ if(results.innerHTML===""){
+    results.textContent="No posts found.";
+ }
+};
+
+window.openPolicy = function(){
+ document.getElementById("policyMenu").style.display="block";
+}
+window.closePolicy = function(){
+ document.getElementById("policyMenu").style.display="none";
+}
+
+</script>
+</body>
+</html>
