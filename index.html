@@ -54,7 +54,7 @@ input,button{padding:8px;margin:4px}
   <div class="popup-content">
     <h2>Privacy Policy</h2>
     <p>The information that is collected:
-usernames, emails (stored in Google Firebase for login and moderation purposes), messages posted to this forum, (your password is NOT accesible to the owner of this forum.).to get your information deleted off of this forum, please contact adameschr@gmail.com with the email address associated with your account. Thank you for reading the privacy policy, have fun on this forum </p>
+usernames, s (stored in Google Firebase for login and moderation purposes), messages posted to this forum, (your password is NOT accesible to the owner of this forum.).to get your information deleted off of this forum, please contact adameschr@gmail.com with the email address associated with your account. Thank you for reading the privacy policy, have fun on this forum </p>
     <p>LAST UPDATED: JULY 2nd 2026</p>
 	  <h2>Terms of Use</h2>
     <p>Here's a list of the rules of this forum</p>
@@ -149,7 +149,7 @@ snap.forEach(async (post) => {
 
    const div = document.createElement("div");
    div.className = "post";
-   div.textContent = `${data.user || data.email}: ${data.text || "text not available"}`;
+   div.textContent = `${data.user || "username not available"}: ${data.text || "text not available"}`;
 
    const currentUsername = auth.currentUser
       ? await getUsername(auth.currentUser.uid)
@@ -202,7 +202,7 @@ onAuthStateChanged(auth, async (user) => {
 
         if (username === "banned") {
             await signOut(auth);
-            alert("you have been banned");
+            alert("you've been banned.");
             return;
         }
 
