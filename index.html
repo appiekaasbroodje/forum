@@ -212,6 +212,8 @@ onAuthStateChanged(auth, async (user) => {
 		if (username) {
 			await signOut(auth);
 			alert("posting has been temporarily disabled")
+			return;
+		}	
 
         document.getElementById("adminPanel").style.display =
             (username === "[ADMIN] appiekaasbroodje") ? "block" : "none";
