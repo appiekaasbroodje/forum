@@ -149,7 +149,7 @@ snap.forEach(async (post) => {
 
    const div = document.createElement("div");
    div.className = "post";
-   div.textContent = `${data.user || data.uid}: ${data.text || "text not available"}`;
+   div.textContent = `${data.user || data.email}: ${data.text || "text not available"}`;
 
    const currentUsername = auth.currentUser
       ? await getUsername(auth.currentUser.uid)
