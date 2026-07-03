@@ -208,12 +208,7 @@ onAuthStateChanged(auth, async (user) => {
 
         statusElement.textContent =
             "Logged in as " + (username || user.email);
-
-		if (username) {
-			await signOut(auth);
-			alert("posting has been temporarily disabled")
-			return;
-		}	
+	
 
         document.getElementById("adminPanel").style.display =
             (username === "[ADMIN] appiekaasbroodje") ? "block" : "none";
