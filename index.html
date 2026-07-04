@@ -291,6 +291,7 @@ document.getElementById("searchBtn").onclick = async () => {
    btn.onclick=async()=>{
       await deleteDoc(doc(db,"posts",post.id));
       div.remove();
+	  loadPosts(); 
    };
 
    div.appendChild(document.createElement("br"));
