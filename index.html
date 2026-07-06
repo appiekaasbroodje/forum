@@ -335,8 +335,21 @@ for (const phrase of bannedPhrases) {
    createdAt: Date.now()
  });
 
- postInput.value = "";
- loadPosts();
+postInput.value = "";
+
+document.getElementById("posts").innerHTML = `
+  <div class="post" style="animation-delay:0s;">
+    <div><b>${username}</b></div>
+    <div style="margin:8px 0">${text}</div>
+	<div class="meta">[message preview] posting in progress...</div>
+  </div>
+`;
+
+
+setTimeout(() => {
+    loadPosts();
+}, 1000);
+
 };
 
 
