@@ -4,12 +4,58 @@
 <meta charset="UTF-8">
 <title>forum</title>
 <style>
-body{font-family:Arial;max-width:800px;margin:auto;padding:20px}
-input,button{padding:8px;margin:4px}
-.post{border:1px solid #ccc;padding:10px;margin:10px 0}
+body{font-family:Arial;max-width:900px;margin:auto;padding:20px;background:#f4f6fb}
+input,button{
+padding:8px;
+margin:4px;
+transition:.15s;
+}
+button:hover{
+transform:translateY(-1px);
+}
+button:active{
+transform:scale(.96);
+}
+.post{
+border:1px solid #ddd;
+padding:14px;
+margin:12px 0;
+border-radius:12px;
+background:white;
+box-shadow:0 2px 8px rgba(0,0,0,.08);
+opacity:0;
+transform:translateY(15px);
+animation:postAppear .35s ease forwards;
+transition:transform .2s, box-shadow .2s;
+}
+
+@keyframes postAppear{
+from{opacity:0;transform:translateY(15px);}
+to{opacity:1;transform:translateY(0);}
+}
+.post:hover{transform:translateY(-4px);box-shadow:0 10px 25px rgba(0,0,0,.12)}
+.meta{font-size:12px;color:#666}
+.actionBtn{margin-right:6px}
 
 .popup{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000}
-.popup-content{background:#fff;max-width:600px;width:90%;padding:20px;border-radius:10px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+.popup-content{
+background:#fff;
+max-width:600px;
+width:90%;
+padding:20px;
+border-radius:10px;
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+opacity:0;
+animation:popupIn .2s ease forwards;
+}
+
+@keyframes popupIn{
+from{opacity:0;transform:translate(-50%,-55%) scale(.96);}
+to{opacity:1;transform:translate(-50%,-50%) scale(1);}
+}
 
 </style>
 </head>
@@ -149,7 +195,17 @@ snap.forEach(async (post) => {
 
    const div = document.createElement("div");
    div.className = "post";
-   div.textContent = `${data.user || "username not available"}: ${data.text || "text not available"}`;
+   div.style.animationDelay = `${container.children.length * 0.05}s`;
+   div.innerHTML = `
+   <div><b>${data.user || "Unknown"}</b></div>
+   <div class="meta">${timeAgo(data.createdAt)}</div>
+   <div style="margin:8px 0">${data.text || "text not available"}</div>
+   `;
+
+
+
+
+
 
    const currentUsername = auth.currentUser
       ? await getUsername(auth.currentUser.uid)
@@ -171,6 +227,16 @@ snap.forEach(async (post) => {
    container.appendChild(div);
 });}
 	
+
+
+function timeAgo(ts){
+ if(!ts) return "just now";
+ const s=Math.floor((Date.now()-ts)/1000);
+ if(s<60)return s+"s ago";
+ if(s<3600)return Math.floor(s/60)+"m ago";
+ if(s<86400)return Math.floor(s/3600)+"h ago";
+ return Math.floor(s/86400)+"d ago";
+}
 
 signupBtn.onclick = async ()=>{
  try{
