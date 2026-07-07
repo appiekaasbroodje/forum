@@ -272,8 +272,18 @@ onAuthStateChanged(auth, async (user) => {
         const username = await ensureUsername(user);
 
         if (username === "banned") {
-            await signOut(auth);
-            alert("you've been banned.");
+            document.getElementById("posts").innerHTML = `
+  <div class="post" style="animation-delay:0s;">
+    <div><b>you've been banned from this forum.</b></div>
+    <div style="margin:8px 0">you can no longer post and view messages.</div>
+  </div>
+
+`;
+
+document.getElementById("postBtn").disabled = true;
+        statusElement.textContent =
+            "Logged in as " + (user.email);
+
             return;
         }
 
@@ -286,7 +296,7 @@ onAuthStateChanged(auth, async (user) => {
 
         loadPosts();
     } else {
-        statusElement.textContent = "Not logged in";
+        statusElement.textContent = "Not logged in, log in or create an account to see and publish posts.";
         document.getElementById("adminPanel").style.display = "none";
     }
 });
@@ -316,13 +326,20 @@ postBtn.onclick = async ()=>{
 	"appiekaasbroodje is gay",
 	"undefined",
 	"text not available",
+	"ur so dumb",
+	"you're so dumb",
 ];
 
 const lowerText = text.toLowerCase();
 
 for (const phrase of bannedPhrases) {
     if (lowerText.includes(phrase.toLowerCase())) {
-        alert("message not posted, a word/words in your message have been blocked.");
+        document.getElementById("posts").innerHTML = `
+  <div class="post" style="animation-delay:0s;">
+    <div><b>message not posted</b></div>
+    <div style="margin:8px 0">"${text}" is not allowed to be posted on this forum. refresh the page to see messages.</div>
+  </div>
+`;
         return;
     }
 }
@@ -395,6 +412,8 @@ window.openPolicy = function(){
 window.closePolicy = function(){
  document.getElementById("policyMenu").style.display="none";
 }
+
+
 
 </script>
 
